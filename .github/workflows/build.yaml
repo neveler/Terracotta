@@ -26,14 +26,17 @@ defaults:
 jobs:
   build:
     strategy:
+      fail-fast: true
       matrix:
         include:
           - os: windows-latest
             name: Windows
             arch: x86_64
+            target: x86_64-pc-windows-msvc
           - os: windows-11-arm
             name: Windows
             arch: arm64
+            target: aarch64-pc-windows-msvc
           - os: ubuntu-24.04
             name: Linux
             arch: x86_64
@@ -51,9 +54,11 @@ jobs:
           - os: macos-15-intel
             name: MacOS
             arch: x86_64
+            target: x86_64-apple-darwin
           - os: macos-latest
             name: MacOS
             arch: arm64
+            target: aarch64-apple-darwin
     runs-on: ${{ matrix.os }}
     name: Build for ${{ matrix.name }} ${{ matrix.arch }}
     steps:
@@ -82,44 +87,27 @@ jobs:
           else
             echo "TERRACOTTA_VERSION=${{ github.event.inputs.version }}" >> $GITHUB_ENV
           fi
-      - name: Install 7z (${{ matrix.name }} ${{ matrix.arch }})
+      - name: Install 7z (Windows)
         if: ${{ matrix.name == 'Windows' }}
         run: choco install 7zip
-      - name: Install Zig (${{ matrix.name }} ${{ matrix.arch }})
+      - name: Install Zig (Linux riscv64 | loongarch64)
         if: ${{ matrix.name == 'Linux' && contains(fromJSON('["riscv64", "loongarch64"]'), matrix.arch) }}
         uses: mlugg/setup-zig@v2
-      - name: Install cargo-zigbuild (${{ matrix.name }} ${{ matrix.arch }})
+      - name: Install cargo-zigbuild (Linux riscv64 | loongarch64)
         if: ${{ matrix.name == 'Linux' && contains(fromJSON('["riscv64", "loongarch64"]'), matrix.arch) }}
         run: cargo install cargo-zigbuild --force
-      - name: Build (build-windows-x86_64)
+      - name: Build (Windows)
+        if: ${{ matrix.name == 'Windows' }}
         run: |
-          rustup target add --toolchain nightly x86_64-pc-windows-msvc
-          rustup component add rust-src --toolchain nightly-x86_64-pc-windows-msvc
+          rustup target add --toolchain nightly ${{ matrix.target }}
+          rustup component add rust-src --toolchain nightly-${{ matrix.target }}
           cargo +nightly build --release --target $(rustc --print host-tuple) \
             -Z build-std=core,std,alloc,proc_macro,panic_abort \
             -Z build-std-features=default,optimize_for_size
         env:
           RUSTFLAGS: -Zunstable-options -Cpanic=immediate-abort
-      - name: Build (build-windows-arm64)
-        run: |
-          rustup target add --toolchain nightly aarch64-pc-windows-msvc
-          rustup component add rust-src --toolchain nightly-aarch64-pc-windows-msvc
-          cargo +nightly build --release --target $(rustc --print host-tuple) \
-            -Z build-std=core,std,alloc,proc_macro,panic_abort \
-            -Z build-std-features=default,optimize_for_size
-        env:
-          RUSTFLAGS: -Zunstable-options -Cpanic=immediate-abort
-      - name: Build (build-linux-x86_64)
-        run: |
-          rustup target add --toolchain nightly "$TARGET"
-          rustup component add rust-src --toolchain "nightly-$TARGET"
-          rustup component add rust-src --toolchain "nightly-$(rustc --print host-tuple)"
-          cargo +nightly build --release --target "$TARGET" \
-            -Z build-std=core,std,alloc,proc_macro,panic_abort \
-            -Z build-std-features=default,optimize_for_size
-        env:
-          RUSTFLAGS: -Zunstable-options -Cpanic=immediate-abort
-      - name: Build (build-linux-arm64)
+      - name: Build (Linux x86_64 | arm64)
+        if: ${{ matrix.name == 'Linux' && contains(fromJSON('["x86_64", "arm64"]'), matrix.arch) }}
         run: |
           rustup target add --toolchain nightly "$TARGET"
           rustup component add rust-src --toolchain "nightly-$TARGET"
@@ -137,19 +125,11 @@ jobs:
         run: |
           rustup target add --toolchain nightly "$TARGET"
           cargo +nightly zigbuild --release --target "$TARGET.$GLIBC_VERSION"
-      - name: Build (macos-15-intel)
+      - name: Build (MacOS)
+        if: ${{ matrix.name == 'MacOS' }}
         run: |
-          rustup target add --toolchain nightly x86_64-apple-darwin
-          rustup component add rust-src --toolchain nightly-x86_64-apple-darwin
-          cargo +nightly build --release --target $(rustc --print host-tuple) \
-            -Z build-std=core,std,alloc,proc_macro,panic_abort \
-            -Z build-std-features=default,optimize_for_size
-        env:
-          RUSTFLAGS: -Zunstable-options -Cpanic=immediate-abort
-      - name: Build (build-macos-arm64)
-        run: |
-          rustup target add --toolchain nightly aarch64-apple-darwin
-          rustup component add rust-src --toolchain nightly-aarch64-apple-darwin
+          rustup target add --toolchain nightly ${{ matrix.target }}
+          rustup component add rust-src --toolchain nightly-${{ matrix.target }}
           cargo +nightly build --release --target $(rustc --print host-tuple) \
             -Z build-std=core,std,alloc,proc_macro,panic_abort \
             -Z build-std-features=default,optimize_for_size
