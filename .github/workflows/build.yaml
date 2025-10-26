@@ -94,8 +94,8 @@ jobs:
       - name: Build (Windows)
         if: ${{ matrix.name == 'Windows' }}
         run: |
-          rustup target add --toolchain nightly ${{ matrix.target }}
-          rustup component add rust-src --toolchain nightly-${{ matrix.target }}
+          rustup target add --toolchain nightly "${{ matrix.target }}"
+          rustup component add rust-src --toolchain "nightly-${{ matrix.target }}"
           cargo +nightly build --release --target $(rustc --print host-tuple) \
             -Z build-std=core,std,alloc,proc_macro,panic_abort \
             -Z build-std-features=default,optimize_for_size
@@ -104,10 +104,10 @@ jobs:
       - name: Build (Linux x86_64 | arm64)
         if: ${{ matrix.name == 'Linux' && contains(fromJSON('["x86_64", "arm64"]'), matrix.arch) }}
         run: |
-          rustup target add --toolchain nightly ${{ matrix.target }}
+          rustup target add --toolchain nightly "${{ matrix.target }}"
           rustup component add rust-src --toolchain "nightly-${{ matrix.target }}"
           rustup component add rust-src --toolchain "nightly-$(rustc --print host-tuple)"
-          cargo +nightly build --release --target ${{ matrix.target }} \
+          cargo +nightly build --release --target "${{ matrix.target }}" \
             -Z build-std=core,std,alloc,proc_macro,panic_abort \
             -Z build-std-features=default,optimize_for_size
         env:
@@ -115,13 +115,13 @@ jobs:
       - name: Build (Linux riscv64 | loongarch64)
         if: ${{ matrix.name == 'Linux' && contains(fromJSON('["riscv64", "loongarch64"]'), matrix.arch) }}
         run: |
-          rustup target add --toolchain nightly ${{ matrix.target }}
+          rustup target add --toolchain nightly "${{ matrix.target }}"
           cargo +nightly zigbuild --release --target "${{ matrix.target }}.${{ matrix.glibc-version }}"
       - name: Build (MacOS)
         if: ${{ matrix.name == 'MacOS' }}
         run: |
-          rustup target add --toolchain nightly ${{ matrix.target }}
-          rustup component add rust-src --toolchain nightly-${{ matrix.target }}
+          rustup target add --toolchain nightly "${{ matrix.target }}"
+          rustup component add rust-src --toolchain "nightly-${{ matrix.target }}"
           cargo +nightly build --release --target $(rustc --print host-tuple) \
             -Z build-std=core,std,alloc,proc_macro,panic_abort \
             -Z build-std-features=default,optimize_for_size
