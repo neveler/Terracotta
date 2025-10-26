@@ -24,19 +24,53 @@ defaults:
     shell: "bash"
 
 jobs:
-  build:
+  build-windows:
     strategy:
       fail-fast: false
       matrix:
         include:
           - os: windows-latest
-            name: Windows
             arch: x86_64
             target: x86_64-pc-windows-msvc
           - os: windows-11-arm
-            name: Windows
             arch: arm64
             target: aarch64-pc-windows-msvc
+    runs-on: ${{ matrix.os }}
+    name: Build for Windows (${{ matrix.arch }})
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Install GitHub Artifact Client
+        uses: lhotari/gh-actions-artifact-client@v2
+      - name: Compute Version
+        run: |
+          if [ -z "${{ github.event.inputs.version }}" ]; then
+            echo "TERRACOTTA_VERSION=${GITHUB_SHA::7}" >> $GITHUB_ENV
+          else
+            echo "TERRACOTTA_VERSION=${{ github.event.inputs.version }}" >> $GITHUB_ENV
+          fi
+      - name: Install 7z
+        run: choco install 7zip
+      - name: Build
+        run: |
+          rustup target add --toolchain nightly "${{ matrix.target }}"
+          rustup component add rust-src --toolchain "nightly-${{ matrix.target }}"
+          cargo +nightly build --release --target $(rustc --print host-tuple) \
+            -Z build-std=core,std,alloc,proc_macro,panic_abort \
+            -Z build-std-features=default,optimize_for_size
+        env:
+          RUSTFLAGS: -Zunstable-options -Cpanic=immediate-abort
+      - name: Upload Artifact
+        run: |
+          source="terracotta-${TERRACOTTA_VERSION}-windows-${{ matrix.arch }}.exe"
+          cp "target/$(rustc --print host-tuple)/release/terracotta.exe" "$source"
+          7z a "$source.zip" "$source"
+          cat "$source.zip" | gh-actions-artifact-client.js upload "$source"
+  build-linux:
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
           - os: ubuntu-24.04
             name: Linux
             arch: x86_64
@@ -55,23 +89,14 @@ jobs:
             arch: loongarch64
             target: loongarch64-unknown-linux-gnu
             glibc-version: 2.36
-          - os: macos-15-intel
-            name: MacOS
-            arch: x86_64
-            target: x86_64-apple-darwin
-          - os: macos-latest
-            name: MacOS
-            arch: arm64
-            target: aarch64-apple-darwin
     runs-on: ${{ matrix.os }}
-    name: Build for ${{ matrix.name }} ${{ matrix.arch }}
+    name: Build for Linux (${{ matrix.arch }})
     steps:
       - name: Checkout
         uses: actions/checkout@v4
       - name: Install GitHub Artifact Client
-        uses: lhotari/gh-actions-artifact-client@v2
-      - name: Install musl libc (Linux x86_64 | arm64)
-        if: ${{ matrix.name == 'Linux' && contains(fromJSON('["x86_64", "arm64"]'), matrix.arch) }}
+        uses: lhotari/gh-actions-artifact-client@v2- name: Install musl libc (Linux x86_64 | arm64)
+        if: ${{ contains(fromJSON('["x86_64", "arm64"]'), matrix.arch) }}
         run: |
           sudo apt update
           sudo apt install --yes --no-install-recommends build-essential musl-tools musl-dev
@@ -82,27 +107,14 @@ jobs:
           else
             echo "TERRACOTTA_VERSION=${{ github.event.inputs.version }}" >> $GITHUB_ENV
           fi
-      - name: Install 7z (Windows)
-        if: ${{ matrix.name == 'Windows' }}
-        run: choco install 7zip
-      - name: Install Zig (Linux riscv64 | loongarch64)
-        if: ${{ matrix.name == 'Linux' && contains(fromJSON('["riscv64", "loongarch64"]'), matrix.arch) }}
+      - name: Install Zig (riscv64 | loongarch64)
+        if: ${{ contains(fromJSON('["riscv64", "loongarch64"]'), matrix.arch) }}
         uses: mlugg/setup-zig@v2
-      - name: Install cargo-zigbuild (Linux riscv64 | loongarch64)
-        if: ${{ matrix.name == 'Linux' && contains(fromJSON('["riscv64", "loongarch64"]'), matrix.arch) }}
+      - name: Install cargo-zigbuild (riscv64 | loongarch64)
+        if: ${{ contains(fromJSON('["riscv64", "loongarch64"]'), matrix.arch) }}
         run: cargo install cargo-zigbuild --force
-      - name: Build (Windows)
-        if: ${{ matrix.name == 'Windows' }}
-        run: |
-          rustup target add --toolchain nightly "${{ matrix.target }}"
-          rustup component add rust-src --toolchain "nightly-${{ matrix.target }}"
-          cargo +nightly build --release --target $(rustc --print host-tuple) \
-            -Z build-std=core,std,alloc,proc_macro,panic_abort \
-            -Z build-std-features=default,optimize_for_size
-        env:
-          RUSTFLAGS: -Zunstable-options -Cpanic=immediate-abort
-      - name: Build (Linux x86_64 | arm64)
-        if: ${{ matrix.name == 'Linux' && contains(fromJSON('["x86_64", "arm64"]'), matrix.arch) }}
+      - name: Build (x86_64 | arm64)
+        if: ${{ contains(fromJSON('["x86_64", "arm64"]'), matrix.arch) }}
         run: |
           rustup target add --toolchain nightly "${{ matrix.target }}"
           rustup component add rust-src --toolchain "nightly-${{ matrix.target }}"
@@ -112,13 +124,44 @@ jobs:
             -Z build-std-features=default,optimize_for_size
         env:
           RUSTFLAGS: -Zunstable-options -Cpanic=immediate-abort
-      - name: Build (Linux riscv64 | loongarch64)
-        if: ${{ matrix.name == 'Linux' && contains(fromJSON('["riscv64", "loongarch64"]'), matrix.arch) }}
+      - name: Build (riscv64 | loongarch64)
+        if: ${{ contains(fromJSON('["riscv64", "loongarch64"]'), matrix.arch) }}
         run: |
           rustup target add --toolchain nightly "${{ matrix.target }}"
           cargo +nightly zigbuild --release --target "${{ matrix.target }}.${{ matrix.glibc-version }}"
-      - name: Build (MacOS)
-        if: ${{ matrix.name == 'MacOS' }}
+      - name: Upload Artifact
+        run: |
+          source="terracotta-${TERRACOTTA_VERSION}-linux-${{ matrix.arch }}"
+          cp "target/${{ matrix.target }}/release/terracotta" "$source"
+          chmod 755 "$source"
+          tar -cf "$source.tar" "$source"
+          zip -q - "$source.tar" | gh-actions-artifact-client.js upload "$source.tar"
+  build-macos:
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - os: macos-15-intel
+            arch: x86_64
+            target: x86_64-apple-darwin
+          - os: macos-latest
+            arch: arm64
+            target: aarch64-apple-darwin
+    runs-on: ${{ matrix.os }}
+    name: Build for MacOS (${{ matrix.arch }})
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Install GitHub Artifact Client
+        uses: lhotari/gh-actions-artifact-client@v2
+      - name: Compute Version
+        run: |
+          if [ -z "${{ github.event.inputs.version }}" ]; then
+            echo "TERRACOTTA_VERSION=${GITHUB_SHA::7}" >> $GITHUB_ENV
+          else
+            echo "TERRACOTTA_VERSION=${{ github.event.inputs.version }}" >> $GITHUB_ENV
+          fi
+      - name: Build
         run: |
           rustup target add --toolchain nightly "${{ matrix.target }}"
           rustup component add rust-src --toolchain "nightly-${{ matrix.target }}"
@@ -127,23 +170,7 @@ jobs:
             -Z build-std-features=default,optimize_for_size
         env:
           RUSTFLAGS: -Zunstable-options -Cpanic=immediate-abort
-      - name: Upload Artifact (Windows)
-        if: ${{ matrix.name == 'Windows' }}
-        run: |
-          source="terracotta-${TERRACOTTA_VERSION}-windows-${{ matrix.arch }}.exe"
-          cp "target/$(rustc --print host-tuple)/release/terracotta.exe" "$source"
-          7z a "$source.zip" "$source"
-          cat "$source.zip" | gh-actions-artifact-client.js upload "$source"
-      - name: Upload Artifact (Linux)
-        if: ${{ matrix.name == 'Linux' }}
-        run: |
-          source="terracotta-${TERRACOTTA_VERSION}-linux-${{ matrix.arch }}"
-          cp "target/${{ matrix.target }}/release/terracotta" "$source"
-          chmod 755 "$source"
-          tar -cf "$source.tar" "$source"
-          zip -q - "$source.tar" | gh-actions-artifact-client.js upload "$source.tar"
-      - name: Upload Artifact (MacOS)
-        if: ${{ matrix.name == 'MacOS' }}
+      - name: Upload Artifact
         run: |
           source="terracotta-${TERRACOTTA_VERSION}-macos-${{ matrix.arch }}"
           
