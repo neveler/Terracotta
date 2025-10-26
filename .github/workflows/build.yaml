@@ -117,11 +117,8 @@ jobs:
             -Z build-std-features=default,optimize_for_size
         env:
           RUSTFLAGS: -Zunstable-options -Cpanic=immediate-abort
-      - name: Build (build-linux-riscv64)
-        run: |
-          rustup target add --toolchain nightly "$TARGET"
-          cargo +nightly zigbuild --release --target "$TARGET.$GLIBC_VERSION"
-      - name: Build (build-linux-loongarch64)
+      - name: Build (Linux riscv64 | loongarch64)
+        if: ${{ matrix.name == 'Linux' && contains(fromJSON('["riscv64", "loongarch64"]'), matrix.arch) }}
         run: |
           rustup target add --toolchain nightly "$TARGET"
           cargo +nightly zigbuild --release --target "$TARGET.$GLIBC_VERSION"
