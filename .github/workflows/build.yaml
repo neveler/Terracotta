@@ -123,12 +123,6 @@ jobs:
         run: |
           sudo apt update
           sudo apt install --yes --no-install-recommends build-essential musl-tools musl-dev
-      - name: Install Zig (riscv64 | loongarch64)
-        if: ${{ contains(fromJSON('["riscv64", "loongarch64"]'), matrix.arch) }}
-        uses: mlugg/setup-zig@v2
-      - name: Install cargo-zigbuild (riscv64 | loongarch64)
-        if: ${{ contains(fromJSON('["riscv64", "loongarch64"]'), matrix.arch) }}
-        run: cargo install cargo-zigbuild --force
       - name: Compute Version
         run: |
           if [ -z "${{ github.event.inputs.version }}" ]; then
@@ -149,6 +143,12 @@ jobs:
           key: ${{ runner.os }}-${{ matrix.arch }}-cargo-${{ hashFiles('**/Cargo.lock') || format('run-{0}', github.run_id) }}
           restore-keys: |
             ${{ runner.os }}-${{ matrix.arch }}-cargo-
+      - name: Install Zig (riscv64 | loongarch64)
+        if: ${{ contains(fromJSON('["riscv64", "loongarch64"]'), matrix.arch) }}
+        uses: mlugg/setup-zig@v2
+      - name: Install cargo-zigbuild (riscv64 | loongarch64)
+        if: ${{ contains(fromJSON('["riscv64", "loongarch64"]'), matrix.arch) }}
+        run: cargo install cargo-zigbuild --force
       - name: Build (x86_64 | arm64)
         if: ${{ contains(fromJSON('["x86_64", "arm64"]'), matrix.arch) }}
         run: |
