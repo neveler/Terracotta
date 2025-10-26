@@ -51,6 +51,19 @@ jobs:
           fi
       - name: Install 7z
         run: choco install 7zip
+      - id: restore-cache-cargo
+        name: Restore Cache Cargo
+        uses: actions/cache/restore@v4
+        with:
+          path: |
+            ~/.cargo/bin/
+            ~/.cargo/registry/index/
+            ~/.cargo/registry/cache/
+            ~/.cargo/git/db/
+            target/
+          key: ${{ runner.os }}-${{ matrix.arch }}-cargo-${{ hashFiles('**/Cargo.lock') || format('run-{0}', github.run_id) }}
+          restore-keys: |
+            ${{ runner.os }}-${{ matrix.arch }}-cargo-
       - name: Build
         run: |
           rustup target add --toolchain nightly "${{ matrix.target }}"
@@ -60,6 +73,19 @@ jobs:
             -Z build-std-features=default,optimize_for_size
         env:
           RUSTFLAGS: -Zunstable-options -Cpanic=immediate-abort
+      - if: ${{ env.cache-key != steps.restore-cache-cargo.outputs.cache-matched-key }}
+        env:
+          cache-key: ${{ format('{0}-{1}-cargo-{2}', runner.os, matrix.arch, hashFiles('**/Cargo.lock')) }}
+        name: Save Cache Cargo
+        uses: actions/cache/save@v4
+        with:
+          path: |
+            ~/.cargo/bin/
+            ~/.cargo/registry/index/
+            ~/.cargo/registry/cache/
+            ~/.cargo/git/db/
+            target/
+          key: ${{ env.cache-key }}
       - name: Upload Artifact
         run: |
           source="terracotta-${TERRACOTTA_VERSION}-windows-${{ matrix.arch }}.exe"
@@ -104,6 +130,19 @@ jobs:
           else
             echo "TERRACOTTA_VERSION=${{ github.event.inputs.version }}" >> $GITHUB_ENV
           fi
+      - id: restore-cache-cargo
+        name: Restore Cache Cargo
+        uses: actions/cache/restore@v4
+        with:
+          path: |
+            ~/.cargo/bin/
+            ~/.cargo/registry/index/
+            ~/.cargo/registry/cache/
+            ~/.cargo/git/db/
+            target/
+          key: ${{ runner.os }}-${{ matrix.arch }}-cargo-${{ hashFiles('**/Cargo.lock') || format('run-{0}', github.run_id) }}
+          restore-keys: |
+            ${{ runner.os }}-${{ matrix.arch }}-cargo-
       - name: Install Zig (riscv64 | loongarch64)
         if: ${{ contains(fromJSON('["riscv64", "loongarch64"]'), matrix.arch) }}
         uses: mlugg/setup-zig@v2
@@ -126,6 +165,19 @@ jobs:
         run: |
           rustup target add --toolchain nightly "${{ matrix.target }}"
           cargo +nightly zigbuild --release --target "${{ matrix.target }}.${{ matrix.glibc-version }}"
+      - if: ${{ env.cache-key != steps.restore-cache-cargo.outputs.cache-matched-key }}
+        env:
+          cache-key: ${{ format('{0}-{1}-cargo-{2}', runner.os, matrix.arch, hashFiles('**/Cargo.lock')) }}
+        name: Save Cache Cargo
+        uses: actions/cache/save@v4
+        with:
+          path: |
+            ~/.cargo/bin/
+            ~/.cargo/registry/index/
+            ~/.cargo/registry/cache/
+            ~/.cargo/git/db/
+            target/
+          key: ${{ env.cache-key }}
       - name: Upload Artifact
         run: |
           source="terracotta-${TERRACOTTA_VERSION}-linux-${{ matrix.arch }}"
@@ -158,6 +210,19 @@ jobs:
           else
             echo "TERRACOTTA_VERSION=${{ github.event.inputs.version }}" >> $GITHUB_ENV
           fi
+      - id: restore-cache-cargo
+        name: Restore Cache Cargo
+        uses: actions/cache/restore@v4
+        with:
+          path: |
+            ~/.cargo/bin/
+            ~/.cargo/registry/index/
+            ~/.cargo/registry/cache/
+            ~/.cargo/git/db/
+            target/
+          key: ${{ runner.os }}-${{ matrix.arch }}-cargo-${{ hashFiles('**/Cargo.lock') || format('run-{0}', github.run_id) }}
+          restore-keys: |
+            ${{ runner.os }}-${{ matrix.arch }}-cargo-
       - name: Build
         run: |
           rustup target add --toolchain nightly "${{ matrix.target }}"
@@ -167,6 +232,19 @@ jobs:
             -Z build-std-features=default,optimize_for_size
         env:
           RUSTFLAGS: -Zunstable-options -Cpanic=immediate-abort
+      - if: ${{ env.cache-key != steps.restore-cache-cargo.outputs.cache-matched-key }}
+        env:
+          cache-key: ${{ format('{0}-{1}-cargo-{2}', runner.os, matrix.arch, hashFiles('**/Cargo.lock')) }}
+        name: Save Cache Cargo
+        uses: actions/cache/save@v4
+        with:
+          path: |
+            ~/.cargo/bin/
+            ~/.cargo/registry/index/
+            ~/.cargo/registry/cache/
+            ~/.cargo/git/db/
+            target/
+          key: ${{ env.cache-key }}
       - name: Upload Artifact
         run: |
           source="terracotta-${TERRACOTTA_VERSION}-macos-${{ matrix.arch }}"
