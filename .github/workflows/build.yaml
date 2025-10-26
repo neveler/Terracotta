@@ -60,7 +60,7 @@ jobs:
             ~/.cargo/registry/cache/
             ~/.cargo/git/db/
             target/
-          key: ${{ runner.os }}-${{ matrix.arch }}-cargo-${{ hashFiles('**/Cargo.lock') }}
+          key: ${{ runner.os }}-${{ matrix.arch }}-cargo-${{ hashFiles('**/Cargo.lock') || format('run-{0}', github.run_id) }}
           restore-keys: |
             ${{ runner.os }}-${{ matrix.arch }}-cargo-
       - name: Build
@@ -141,7 +141,7 @@ jobs:
             ~/.cargo/registry/cache/
             ~/.cargo/git/db/
             target/
-          key: ${{ runner.os }}-${{ matrix.arch }}-cargo-${{ hashFiles('**/Cargo.lock') }}
+          key: ${{ runner.os }}-${{ matrix.arch }}-cargo-${{ hashFiles('**/Cargo.lock') || format('run-{0}', github.run_id) }}
           restore-keys: |
             ${{ runner.os }}-${{ matrix.arch }}-cargo-
       - name: Build (x86_64 | arm64)
@@ -211,7 +211,7 @@ jobs:
             ~/.cargo/registry/cache/
             ~/.cargo/git/db/
             target/
-          key: ${{ runner.os }}-${{ matrix.arch }}-cargo-${{ hashFiles('**/Cargo.lock') }}
+          key: ${{ runner.os }}-${{ matrix.arch }}-cargo-${{ hashFiles('**/Cargo.lock') || format('run-{0}', github.run_id) }}
           restore-keys: |
             ${{ runner.os }}-${{ matrix.arch }}-cargo-
       - name: Build
