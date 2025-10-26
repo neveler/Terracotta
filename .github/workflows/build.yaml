@@ -40,18 +40,6 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
-      - name: Cache Cargo
-        uses: actions/cache@v4
-        with:
-          path: |
-            ~/.cargo/bin/
-            ~/.cargo/registry/index/
-            ~/.cargo/registry/cache/
-            ~/.cargo/git/db/
-            target/
-          key: ${{ runner.os }}-${{ matrix.arch }}-cargo-${{ hashFiles('**/Cargo.lock') }}
-          restore-keys: |
-            ${{ runner.os }}-${{ matrix.arch }}-cargo-
       - name: Install GitHub Artifact Client
         uses: lhotari/gh-actions-artifact-client@v2
       - name: Compute Version
@@ -63,6 +51,18 @@ jobs:
           fi
       - name: Install 7z
         run: choco install 7zip
+      - name: Restore Cache Cargo
+        uses: actions/cache/restore@v4
+        with:
+          path: |
+            ~/.cargo/bin/
+            ~/.cargo/registry/index/
+            ~/.cargo/registry/cache/
+            ~/.cargo/git/db/
+            target/
+          key: ${{ runner.os }}-${{ matrix.arch }}-cargo-${{ hashFiles('**/Cargo.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-${{ matrix.arch }}-cargo-
       - name: Build
         run: |
           rustup target add --toolchain nightly "${{ matrix.target }}"
@@ -72,6 +72,16 @@ jobs:
             -Z build-std-features=default,optimize_for_size
         env:
           RUSTFLAGS: -Zunstable-options -Cpanic=immediate-abort
+      - name: Save Cache Cargo
+        uses: actions/cache/save@v4
+        with:
+          path: |
+            ~/.cargo/bin/
+            ~/.cargo/registry/index/
+            ~/.cargo/registry/cache/
+            ~/.cargo/git/db/
+            target/
+          key: ${{ runner.os }}-${{ matrix.arch }}-cargo-${{ hashFiles('**/Cargo.lock') }}
       - name: Upload Artifact
         run: |
           source="terracotta-${TERRACOTTA_VERSION}-windows-${{ matrix.arch }}.exe"
@@ -102,18 +112,6 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
-      - name: Cache Cargo
-        uses: actions/cache@v4
-        with:
-          path: |
-            ~/.cargo/bin/
-            ~/.cargo/registry/index/
-            ~/.cargo/registry/cache/
-            ~/.cargo/git/db/
-            target/
-          key: ${{ runner.os }}-${{ matrix.arch }}-cargo-${{ hashFiles('**/Cargo.lock') }}
-          restore-keys: |
-            ${{ runner.os }}-${{ matrix.arch }}-cargo-
       - name: Install GitHub Artifact Client
         uses: lhotari/gh-actions-artifact-client@v2
       - name: Install musl libc (x86_64 | arm64)
@@ -134,6 +132,18 @@ jobs:
           else
             echo "TERRACOTTA_VERSION=${{ github.event.inputs.version }}" >> $GITHUB_ENV
           fi
+      - name: Restore Cache Cargo
+        uses: actions/cache/restore@v4
+        with:
+          path: |
+            ~/.cargo/bin/
+            ~/.cargo/registry/index/
+            ~/.cargo/registry/cache/
+            ~/.cargo/git/db/
+            target/
+          key: ${{ runner.os }}-${{ matrix.arch }}-cargo-${{ hashFiles('**/Cargo.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-${{ matrix.arch }}-cargo-
       - name: Build (x86_64 | arm64)
         if: ${{ contains(fromJSON('["x86_64", "arm64"]'), matrix.arch) }}
         run: |
@@ -150,6 +160,16 @@ jobs:
         run: |
           rustup target add --toolchain nightly "${{ matrix.target }}"
           cargo +nightly zigbuild --release --target "${{ matrix.target }}.${{ matrix.glibc-version }}"
+      - name: Save Cache Cargo
+        uses: actions/cache/save@v4
+        with:
+          path: |
+            ~/.cargo/bin/
+            ~/.cargo/registry/index/
+            ~/.cargo/registry/cache/
+            ~/.cargo/git/db/
+            target/
+          key: ${{ runner.os }}-${{ matrix.arch }}-cargo-${{ hashFiles('**/Cargo.lock') }}
       - name: Upload Artifact
         run: |
           source="terracotta-${TERRACOTTA_VERSION}-linux-${{ matrix.arch }}"
@@ -173,8 +193,17 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
-      - name: Cache Cargo
-        uses: actions/cache@v4
+      - name: Install GitHub Artifact Client
+        uses: lhotari/gh-actions-artifact-client@v2
+      - name: Compute Version
+        run: |
+          if [ -z "${{ github.event.inputs.version }}" ]; then
+            echo "TERRACOTTA_VERSION=${GITHUB_SHA::7}" >> $GITHUB_ENV
+          else
+            echo "TERRACOTTA_VERSION=${{ github.event.inputs.version }}" >> $GITHUB_ENV
+          fi
+      - name: Restore Cache Cargo
+        uses: actions/cache/restore@v4
         with:
           path: |
             ~/.cargo/bin/
@@ -185,15 +214,6 @@ jobs:
           key: ${{ runner.os }}-${{ matrix.arch }}-cargo-${{ hashFiles('**/Cargo.lock') }}
           restore-keys: |
             ${{ runner.os }}-${{ matrix.arch }}-cargo-
-      - name: Install GitHub Artifact Client
-        uses: lhotari/gh-actions-artifact-client@v2
-      - name: Compute Version
-        run: |
-          if [ -z "${{ github.event.inputs.version }}" ]; then
-            echo "TERRACOTTA_VERSION=${GITHUB_SHA::7}" >> $GITHUB_ENV
-          else
-            echo "TERRACOTTA_VERSION=${{ github.event.inputs.version }}" >> $GITHUB_ENV
-          fi
       - name: Build
         run: |
           rustup target add --toolchain nightly "${{ matrix.target }}"
@@ -203,6 +223,16 @@ jobs:
             -Z build-std-features=default,optimize_for_size
         env:
           RUSTFLAGS: -Zunstable-options -Cpanic=immediate-abort
+      - name: Save Cache Cargo
+        uses: actions/cache/save@v4
+        with:
+          path: |
+            ~/.cargo/bin/
+            ~/.cargo/registry/index/
+            ~/.cargo/registry/cache/
+            ~/.cargo/git/db/
+            target/
+          key: ${{ runner.os }}-${{ matrix.arch }}-cargo-${{ hashFiles('**/Cargo.lock') }}
       - name: Upload Artifact
         run: |
           source="terracotta-${TERRACOTTA_VERSION}-macos-${{ matrix.arch }}"
