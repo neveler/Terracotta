@@ -70,7 +70,7 @@ jobs:
         uses: actions/checkout@v4
       - name: Install GitHub Artifact Client
         uses: lhotari/gh-actions-artifact-client@v2
-      - name: Install musl libc (${{ matrix.name }} ${{ matrix.arch }})
+      - name: Install musl libc (Linux x86_64 | arm64)
         if: ${{ matrix.name == 'Linux' && contains(fromJSON('["x86_64", "arm64"]'), matrix.arch) }}
         run: |
           sudo apt update
@@ -138,7 +138,7 @@ jobs:
         if: ${{ matrix.name == 'Linux' }}
         run: |
           source="terracotta-${TERRACOTTA_VERSION}-linux-${{ matrix.arch }}"
-          cp "target/$TARGET/release/terracotta" "$source"
+          cp "target/${{ matrix.target }}/release/terracotta" "$source"
           chmod 755 "$source"
           tar -cf "$source.tar" "$source"
           zip -q - "$source.tar" | gh-actions-artifact-client.js upload "$source.tar"
