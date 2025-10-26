@@ -73,7 +73,7 @@ jobs:
             -Z build-std-features=default,optimize_for_size
         env:
           RUSTFLAGS: -Zunstable-options -Cpanic=immediate-abort
-      - if: ${{ env.cache-key == steps.restore-cache-cargo.outputs.cache-matched-key }}
+      - if: ${{ env.cache-key != steps.restore-cache-cargo.outputs.cache-matched-key }}
         env:
           cache-key: ${{ format('{0}-{1}-cargo-{2}', runner.os, matrix.arch, hashFiles('**/Cargo.lock')) }}
         name: Save Cache Cargo
@@ -165,7 +165,7 @@ jobs:
         run: |
           rustup target add --toolchain nightly "${{ matrix.target }}"
           cargo +nightly zigbuild --release --target "${{ matrix.target }}.${{ matrix.glibc-version }}"
-      - if: ${{ env.cache-key == steps.restore-cache-cargo.outputs.cache-matched-key }}
+      - if: ${{ env.cache-key != steps.restore-cache-cargo.outputs.cache-matched-key }}
         env:
           cache-key: ${{ format('{0}-{1}-cargo-{2}', runner.os, matrix.arch, hashFiles('**/Cargo.lock')) }}
         name: Save Cache Cargo
@@ -232,7 +232,7 @@ jobs:
             -Z build-std-features=default,optimize_for_size
         env:
           RUSTFLAGS: -Zunstable-options -Cpanic=immediate-abort
-      - if: ${{ env.cache-key == steps.restore-cache-cargo.outputs.cache-matched-key }}
+      - if: ${{ env.cache-key != steps.restore-cache-cargo.outputs.cache-matched-key }}
         env:
           cache-key: ${{ format('{0}-{1}-cargo-{2}', runner.os, matrix.arch, hashFiles('**/Cargo.lock')) }}
         name: Save Cache Cargo
