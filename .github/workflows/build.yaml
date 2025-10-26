@@ -121,20 +121,6 @@ jobs:
         run: |
           sudo apt update
           sudo apt install --yes --no-install-recommends build-essential musl-tools musl-dev
-      - name: Cache Zig (riscv64 | loongarch64)
-        if: ${{ contains(fromJSON('["riscv64", "loongarch64"]'), matrix.arch) }}
-        uses: actions/cache@v4
-        with:
-          path: ~/.local/share/zig
-          key: zig-${{ runner.os }}-${{ matrix.arch }}
-          restore-keys: |
-            zig-${{ runner.os }}-
-      - name: Cache cargo-zigbuild (riscv64 | loongarch64)
-        if: ${{ contains(fromJSON('["riscv64", "loongarch64"]'), matrix.arch) }}
-        uses: actions/cache@v4
-        with:
-          path: ~/.cargo/bin/cargo-zigbuild
-          key: cargo-zigbuild-${{ runner.os }}-${{ matrix.arch }}
       - name: Install Zig (riscv64 | loongarch64)
         if: ${{ contains(fromJSON('["riscv64", "loongarch64"]'), matrix.arch) }}
         uses: mlugg/setup-zig@v2
