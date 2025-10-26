@@ -72,20 +72,16 @@ jobs:
       matrix:
         include:
           - os: ubuntu-24.04
-            name: Linux
             arch: x86_64
             target: x86_64-unknown-linux-musl
           - os: ubuntu-24.04-arm
-            name: Linux
             arch: arm64
             target: aarch64-unknown-linux-musl
           - os: ubuntu-24.04
-            name: Linux
             arch: riscv64
             target: riscv64gc-unknown-linux-gnu
             glibc-version: 2.27
           - os: ubuntu-24.04
-            name: Linux
             arch: loongarch64
             target: loongarch64-unknown-linux-gnu
             glibc-version: 2.36
