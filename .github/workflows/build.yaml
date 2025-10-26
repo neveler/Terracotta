@@ -95,7 +95,8 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
       - name: Install GitHub Artifact Client
-        uses: lhotari/gh-actions-artifact-client@v2- name: Install musl libc (Linux x86_64 | arm64)
+        uses: lhotari/gh-actions-artifact-client@v2
+      - name: Install musl libc (Linux x86_64 | arm64)
         if: ${{ contains(fromJSON('["x86_64", "arm64"]'), matrix.arch) }}
         run: |
           sudo apt update
@@ -202,7 +203,10 @@ jobs:
   assemble-packages:
     runs-on: ubuntu-latest
     name: Assemble Artifact
-    needs: build
+    needs:
+      - build-windows
+      - build-linux
+      - build-macos
     steps:
       - name: Install GitHub Artifact Client
         uses: lhotari/gh-actions-artifact-client@v2
