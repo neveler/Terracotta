@@ -4,7 +4,7 @@ on:
   push:
     paths-ignore:
       - 'sites/**'
-      - '.github/workflows/docs.yml'
+      - '.github/workflows/**'
   workflow_dispatch:
     inputs:
       version:
@@ -16,8 +16,8 @@ permissions:
 
 env:
   CARGO_TERM_COLOR: always
-  name: "terracotta"
-  RUST_BACKTRACE: "full"
+  name: terracotta
+  RUST_BACKTRACE: full
 
 defaults:
   run:
@@ -49,10 +49,8 @@ jobs:
           else
             echo "TERRACOTTA_VERSION=${{ github.event.inputs.version }}" >> $GITHUB_ENV
           fi
-      - name: Install 7z
-        run: choco install 7zip
-      - id: restore-cache-cargo
-        name: Restore Cache Cargo
+      - id: restore-cargo-cache
+        name: Restore Cargo Cache
         uses: actions/cache/restore@v4
         with:
           path: |
@@ -67,16 +65,16 @@ jobs:
       - name: Build
         run: |
           rustup target add --toolchain nightly "${{ matrix.target }}"
-          rustup component add rust-src --toolchain "nightly-${{ matrix.target }}"
-          cargo +nightly build --release --target $(rustc --print host-tuple) \
+          rustup component add rust-src --toolchain "nightly-$(rustc --print host-tuple)"
+          cargo +nightly build --release --target "${{ matrix.target }}" \
             -Z build-std=core,std,alloc,proc_macro,panic_abort \
             -Z build-std-features=default,optimize_for_size
         env:
           RUSTFLAGS: -Zunstable-options -Cpanic=immediate-abort
-      - if: ${{ env.cache-key != steps.restore-cache-cargo.outputs.cache-matched-key }}
+      - if: ${{ env.cache-key != steps.restore-cargo-cache.outputs.cache-matched-key }}
         env:
           cache-key: ${{ format('{0}-{1}-cargo-{2}', runner.os, matrix.arch, hashFiles('**/Cargo.lock')) }}
-        name: Save Cache Cargo
+        name: Save Cargo Cache
         uses: actions/cache/save@v4
         with:
           path: |
@@ -89,7 +87,7 @@ jobs:
       - name: Upload Artifact
         run: |
           source="terracotta-${TERRACOTTA_VERSION}-windows-${{ matrix.arch }}.exe"
-          cp "target/$(rustc --print host-tuple)/release/terracotta.exe" "$source"
+          cp "target/${{ matrix.target }}/release/terracotta.exe" "$source"
           7z a "$source.zip" "$source"
           cat "$source.zip" | gh-actions-artifact-client.js upload "$source"
   build-linux:
@@ -130,8 +128,8 @@ jobs:
           else
             echo "TERRACOTTA_VERSION=${{ github.event.inputs.version }}" >> $GITHUB_ENV
           fi
-      - id: restore-cache-cargo
-        name: Restore Cache Cargo
+      - id: restore-cargo-cache
+        name: Restore Cargo Cache
         uses: actions/cache/restore@v4
         with:
           path: |
@@ -153,7 +151,6 @@ jobs:
         if: ${{ contains(fromJSON('["x86_64", "arm64"]'), matrix.arch) }}
         run: |
           rustup target add --toolchain nightly "${{ matrix.target }}"
-          rustup component add rust-src --toolchain "nightly-${{ matrix.target }}"
           rustup component add rust-src --toolchain "nightly-$(rustc --print host-tuple)"
           cargo +nightly build --release --target "${{ matrix.target }}" \
             -Z build-std=core,std,alloc,proc_macro,panic_abort \
@@ -165,10 +162,10 @@ jobs:
         run: |
           rustup target add --toolchain nightly "${{ matrix.target }}"
           cargo +nightly zigbuild --release --target "${{ matrix.target }}.${{ matrix.glibc-version }}"
-      - if: ${{ env.cache-key != steps.restore-cache-cargo.outputs.cache-matched-key }}
+      - if: ${{ env.cache-key != steps.restore-cargo-cache.outputs.cache-matched-key }}
         env:
           cache-key: ${{ format('{0}-{1}-cargo-{2}', runner.os, matrix.arch, hashFiles('**/Cargo.lock')) }}
-        name: Save Cache Cargo
+        name: Save Cargo Cache
         uses: actions/cache/save@v4
         with:
           path: |
@@ -210,8 +207,8 @@ jobs:
           else
             echo "TERRACOTTA_VERSION=${{ github.event.inputs.version }}" >> $GITHUB_ENV
           fi
-      - id: restore-cache-cargo
-        name: Restore Cache Cargo
+      - id: restore-cargo-cache
+        name: Restore Cargo Cache
         uses: actions/cache/restore@v4
         with:
           path: |
@@ -226,16 +223,16 @@ jobs:
       - name: Build
         run: |
           rustup target add --toolchain nightly "${{ matrix.target }}"
-          rustup component add rust-src --toolchain "nightly-${{ matrix.target }}"
-          cargo +nightly build --release --target $(rustc --print host-tuple) \
+          rustup component add rust-src --toolchain "nightly-$(rustc --print host-tuple)"
+          cargo +nightly build --release --target "${{ matrix.target }}" \
             -Z build-std=core,std,alloc,proc_macro,panic_abort \
             -Z build-std-features=default,optimize_for_size
         env:
           RUSTFLAGS: -Zunstable-options -Cpanic=immediate-abort
-      - if: ${{ env.cache-key != steps.restore-cache-cargo.outputs.cache-matched-key }}
+      - if: ${{ env.cache-key != steps.restore-cargo-cache.outputs.cache-matched-key }}
         env:
           cache-key: ${{ format('{0}-{1}-cargo-{2}', runner.os, matrix.arch, hashFiles('**/Cargo.lock')) }}
-        name: Save Cache Cargo
+        name: Save Cargo Cache
         uses: actions/cache/save@v4
         with:
           path: |
@@ -249,7 +246,7 @@ jobs:
         run: |
           source="terracotta-${TERRACOTTA_VERSION}-macos-${{ matrix.arch }}"
           
-          cp "target/$(rustc --print host-tuple)/release/terracotta" "$source"
+          cp "target/${{ matrix.target }}/release/terracotta" "$source"
           chmod 755 "$source"
           tar -cf "$source.tar" "$source"
           zip -q - "$source.tar" | gh-actions-artifact-client.js upload "$source.tar"
@@ -260,7 +257,7 @@ jobs:
           
           cp -R build/macos/terracotta.app "$TEMP_DIR"
           mkdir -p "$TEMP_DIR/terracotta.app/Contents/MacOS/"
-          cp "target/$(rustc --print host-tuple)/release/terracotta" "$TEMP_DIR/terracotta.app/Contents/MacOS/terracotta"
+          cp "target/${{ matrix.target }}/release/terracotta" "$TEMP_DIR/terracotta.app/Contents/MacOS/terracotta"
           
           chmod -R 755 "$TEMP_DIR/"
           PKG_OUTPUT="$source.pkg"
@@ -284,10 +281,6 @@ jobs:
     steps:
       - name: Install GitHub Artifact Client
         uses: lhotari/gh-actions-artifact-client@v2
-      - name: Install 7z
-        run: |
-          sudo apt-get update
-          sudo apt-get install -y p7zip-full
       - name: Compute Version
         run: |
           if [ -z "${{ github.event.inputs.version }}" ]; then
