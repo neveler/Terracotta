@@ -2,9 +2,10 @@ name: Rust-Cargo Build
 
 on:
   push:
-    paths-ignore:
-      - 'sites/**'
-      - '.github/workflows/**'
+    paths:
+      - '**'
+      - '!.github/**'
+      - '.github/workflows/build.yaml'
   workflow_dispatch:
     inputs:
       version:
