@@ -199,7 +199,7 @@ jobs:
         uses: houseabsolute/actions-rust-cross@v1
         with:
           command: build
-          toolchain: nightly
+          toolchain: nightly-2018-12-27
           target: ${{ matrix.target }}
           args: --release
           strip: true
