@@ -143,6 +143,8 @@ jobs:
         uses: actions/checkout@v4
       - name: Build
         uses: neveler/actions-rust-cross@v1
+        env:
+          RUSTFLAGS: -Zunstable-options -Cpanic=immediate-abort
         with:
           command: build
           toolchain: nightly
