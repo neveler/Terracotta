@@ -255,6 +255,7 @@ jobs:
             "terracotta-${TERRACOTTA_VERSION}-linux-arm64"
             "terracotta-${TERRACOTTA_VERSION}-linux-riscv64"
             "terracotta-${TERRACOTTA_VERSION}-linux-loongarch64"
+            "terracotta-${TERRACOTTA_VERSION}-freebsd-x86_64"
             "terracotta-${TERRACOTTA_VERSION}-macos-x86_64"
             "terracotta-${TERRACOTTA_VERSION}-macos-arm64"
           )
@@ -281,6 +282,7 @@ jobs:
             tar -czvf terracotta-${TERRACOTTA_VERSION}-linux-arm64-pkg.tar.gz terracotta-${TERRACOTTA_VERSION}-linux-arm64
             tar -czvf terracotta-${TERRACOTTA_VERSION}-linux-riscv64-pkg.tar.gz terracotta-${TERRACOTTA_VERSION}-linux-riscv64
             tar -czvf terracotta-${TERRACOTTA_VERSION}-linux-loongarch64-pkg.tar.gz terracotta-${TERRACOTTA_VERSION}-linux-loongarch64
+            tar -czvf terracotta-${TERRACOTTA_VERSION}-freebsd-x86_64-pkg.tar.gz terracotta-${TERRACOTTA_VERSION}-freebsd-x86_64
           
             tar -czvf terracotta-${TERRACOTTA_VERSION}-macos-x86_64-pkg.tar.gz terracotta-${TERRACOTTA_VERSION}-macos-x86_64 terracotta-${TERRACOTTA_VERSION}-macos-x86_64.pkg
             tar -czvf terracotta-${TERRACOTTA_VERSION}-macos-arm64-pkg.tar.gz terracotta-${TERRACOTTA_VERSION}-macos-arm64 terracotta-${TERRACOTTA_VERSION}-macos-arm64.pkg
