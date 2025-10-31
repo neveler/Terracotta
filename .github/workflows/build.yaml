@@ -89,10 +89,10 @@ jobs:
           #   os: linux
           #   arch: loongarch64
           #   target: loongarch64-unknown-linux-gnu
-          - runs-on: ubuntu-24.04
-            os: freebsd
-            arch: x86_64
-            target: x86_64-unknown-freebsd
+          # - runs-on: ubuntu-24.04
+          #   os: freebsd
+          #   arch: x86_64
+          #   target: x86_64-unknown-freebsd
           - runs-on: ubuntu-24.04-arm
             os: freebsd
             arch: arm64
@@ -137,8 +137,8 @@ jobs:
         run: |
           rustup target add --toolchain nightly "${{ matrix.target }}"
           cargo +nightly zigbuild --release --target "${{ matrix.target }}.${{ matrix.glibc-version }}"
-      - name: Build (freebsd x86_64)
-        if: ${{ contains(fromJSON('["x86_64"]'), matrix.arch) && matrix.os == 'freebsd' }}
+      - name: Build (freebsd x86_64 | freebsd arm64)
+        if: ${{ contains(fromJSON('["x86_64", "arm64"]'), matrix.arch) && matrix.os == 'freebsd' }}
         uses: cross-platform-actions/action@v0.29.0
         with:
           operating_system: freebsd
