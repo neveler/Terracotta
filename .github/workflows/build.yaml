@@ -161,22 +161,26 @@ jobs:
       fail-fast: false
       matrix:
         include:
-          - runs-on: ubuntu-24.04
-            os: freebsd
-            arch: x86_64
-            target: x86_64-unknown-freebsd
+          # - runs-on: ubuntu-24.04
+          #   os: freebsd
+          #   arch: x86_64
+          #   target: x86_64-unknown-freebsd
           # - runs-on: ubuntu-24.04
           #   os: freebsd
           #   arch: arm64
           #   target: aarch64-unknown-freebsd
-          - runs-on: ubuntu-24.04
-            os: linux
-            arch: riscv64
-            target: riscv64gc-unknown-linux-gnu
+          # - runs-on: ubuntu-24.04
+          #   os: linux
+          #   arch: riscv64
+          #   target: riscv64gc-unknown-linux-gnu
+          # - runs-on: ubuntu-24.04
+          #   os: linux
+          #   arch: loongarch64
+          #   target: loongarch64-unknown-linux-gnu
           - runs-on: ubuntu-24.04
             os: linux
             arch: loongarch64
-            target: loongarch64-unknown-linux-gnu
+            target: loongarch64-unknown-linux-musl
     runs-on: ${{ matrix.runs-on }}
     name: Build (${{ matrix.target }})
     steps:
@@ -191,11 +195,12 @@ jobs:
           else
             echo "TERRACOTTA_VERSION=${{ github.event.inputs.version }}" >> $GITHUB_ENV
           fi
-      - name: Prepare (loongarch64-unknown-linux-gnu)
-        if: ${{ matrix.target == 'loongarch64-unknown-linux-gnu' }}
+      - name: Prepare
         run: |
           echo '[target.loongarch64-unknown-linux-gnu]' > Cross.toml
           echo 'image = "ghcr.io/cross-rs/loongarch64-unknown-linux-gnu:edge"' >> Cross.toml
+          echo '[target.loongarch64-unknown-linux-musl]' >> Cross.toml
+          echo 'image = "ghcr.io/cross-rs/loongarch64-unknown-linux-musl:edge"' >> Cross.toml
       - name: Build
         uses: houseabsolute/actions-rust-cross@v1
         with:
