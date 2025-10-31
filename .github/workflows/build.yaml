@@ -163,12 +163,12 @@ jobs:
             --install-location "/Applications" \
             --scripts build/macos/scripts \
             --component-plist build/macos/terracotta.plist \
-            terracotta.pkg
+            target/${{ matrix.target }}/release/terracotta.pkg
       - name: Upload Package Artifact
         uses: actions/upload-artifact@v5
         with:
           name: terracotta-${{ matrix.target }}.pkg
-          path: target/${{ matrix.target }}/release/terracotta
+          path: target/${{ matrix.target }}/release/terracotta.pkg
           retention-days: 1
   # assemble-packages:
   #   runs-on: ubuntu-latest
