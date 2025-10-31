@@ -34,6 +34,7 @@ jobs:
             os: windows
             arch: x86_64
             target: x86_64-pc-windows-msvc
+            components: rust-src
             args: >-
               --release
               -Z build-std=core,std,alloc,proc_macro,panic_abort
@@ -42,6 +43,7 @@ jobs:
             os: windows
             arch: x86_64
             target: x86_64-pc-windows-gnu
+            components: rust-src
             args: >-
               --release
               -Z build-std=core,std,alloc,proc_macro,panic_abort
@@ -50,6 +52,7 @@ jobs:
             os: windows
             arch: arm64
             target: aarch64-pc-windows-msvc
+            components: rust-src
             args: >-
               --release
               -Z build-std=core,std,alloc,proc_macro,panic_abort
@@ -58,6 +61,7 @@ jobs:
             os: linux
             arch: x86_64
             target: x86_64-unknown-linux-gnu
+            components: rust-src
             args: >-
               --release
               -Z build-std=core,std,alloc,proc_macro,panic_abort
@@ -66,6 +70,7 @@ jobs:
             os: linux
             arch: x86_64
             target: x86_64-unknown-linux-musl
+            components: rust-src
             args: >-
               --release
               -Z build-std=core,std,alloc,proc_macro,panic_abort
@@ -74,6 +79,7 @@ jobs:
             os: linux
             arch: arm64
             target: aarch64-unknown-linux-gnu
+            components: rust-src
             args: >-
               --release
               -Z build-std=core,std,alloc,proc_macro,panic_abort
@@ -82,6 +88,7 @@ jobs:
             os: linux
             arch: arm64
             target: aarch64-unknown-linux-musl
+            components: rust-src
             args: >-
               --release
               -Z build-std=core,std,alloc,proc_macro,panic_abort
@@ -115,6 +122,7 @@ jobs:
             os: macos
             arch: x86_64
             target: x86_64-apple-darwin
+            components: rust-src
             args: >-
               --release
               -Z build-std=core,std,alloc,proc_macro,panic_abort
@@ -123,6 +131,7 @@ jobs:
             os: macos
             arch: arm64
             target: aarch64-apple-darwin
+            components: rust-src
             args: >-
               --release
               -Z build-std=core,std,alloc,proc_macro,panic_abort
@@ -133,11 +142,12 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
       - name: Build
-        uses: houseabsolute/actions-rust-cross@v1
+        uses: neveler/actions-rust-cross@v1
         with:
           command: build
           toolchain: nightly
           target: ${{ matrix.target }}
+          components: ${{ matrix.components }}
           args: ${{ matrix.args }}
           strip: true
       - name: Upload Artifact
