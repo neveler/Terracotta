@@ -164,7 +164,7 @@ jobs:
           - runs-on: ubuntu-24.04
             os: freebsd
             arch: x86_64
-          #   target: x86_64-unknown-freebsd
+            target: x86_64-unknown-freebsd
           # - runs-on: ubuntu-24.04
           #   os: freebsd
           #   arch: arm64
@@ -191,6 +191,11 @@ jobs:
           else
             echo "TERRACOTTA_VERSION=${{ github.event.inputs.version }}" >> $GITHUB_ENV
           fi
+      - name: Prepare (loongarch64-unknown-linux-gnu)
+        if: ${{ matrix.target == 'loongarch64-unknown-linux-gnu' }}
+        run: |
+          echo '[target.loongarch64-unknown-linux-gnu]' > Cross.toml
+          echo 'image = "ghcr.io/cross-rs/loongarch64-unknown-linux-gnu:edge"' >> Cross.toml
       - name: Build
         uses: houseabsolute/actions-rust-cross@v1
         with:
