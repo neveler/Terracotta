@@ -153,35 +153,23 @@ jobs:
           name: terracotta-${{ matrix.target }}
           path: target/${{ matrix.target }}/release/terracotta
           retention-days: 1
-  #     - name: Upload Artifact
-  #       run: |
-  #         source="terracotta-${TERRACOTTA_VERSION}-${{ matrix.os }}-${{ matrix.arch }}"
-          
-  #         cp "target/${{ matrix.target }}/release/terracotta" "$source"
-  #         chmod 755 "$source"
-  #         tar -cf "$source.tar" "$source"
-  #         zip -q - "$source.tar" | gh-actions-artifact-client.js upload "$source.tar"
-          
-  #         chmod -R 755 build/macos/scripts
-  #         TEMP_DIR=$(mktemp -d)
-  #         mkdir -p "$TEMP_DIR"
-          
-  #         cp -R build/macos/terracotta.app "$TEMP_DIR"
-  #         mkdir -p "$TEMP_DIR/terracotta.app/Contents/MacOS/"
-  #         cp "target/${{ matrix.target }}/release/terracotta" "$TEMP_DIR/terracotta.app/Contents/MacOS/terracotta"
-          
-  #         chmod -R 755 "$TEMP_DIR/"
-  #         PKG_OUTPUT="$source.pkg"
-          
-  #         pkgbuild \
-  #           --root "$TEMP_DIR" \
-  #           --identifier "net.burningtnt.terracotta" \
-  #           --version "1.0" \
-  #           --install-location "/Applications" \
-  #           --scripts build/macos/scripts \
-  #           --component-plist build/macos/terracotta.plist \
-  #           "$PKG_OUTPUT"
-  #         zip -q - $PKG_OUTPUT | gh-actions-artifact-client.js upload "$source.pkg"
+      - name: Package Artifact
+        run: |
+          cp "target/${{ matrix.target }}/release/terracotta" "build/macos/terracotta.app/Contents/MacOS/terracotta"
+          pkgbuild \
+            --root "build/macos/terracotta.app" \
+            --identifier "net.burningtnt.terracotta" \
+            --version "1.0" \
+            --install-location "/Applications" \
+            --scripts build/macos/scripts \
+            --component-plist build/macos/terracotta.plist \
+            terracotta.pkg
+      - name: Upload Package Artifact
+        uses: actions/upload-artifact@v5
+        with:
+          name: terracotta-${{ matrix.target }}.pkg
+          path: target/${{ matrix.target }}/release/terracotta
+          retention-days: 1
   # assemble-packages:
   #   runs-on: ubuntu-latest
   #   name: Assemble Artifact
