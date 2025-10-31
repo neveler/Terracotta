@@ -169,7 +169,7 @@ jobs:
           #   os: linux
           #   arch: arm64
           #   target: aarch64-unknown-linux-musl
-          - runs-on: ubuntu-24.04
+          - runs-on: windows-latest
             os: windows
             arch: x86_64
             target: x86_64-pc-windows-gnu
