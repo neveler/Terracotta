@@ -183,8 +183,9 @@ jobs:
         uses: houseabsolute/actions-rust-cross@v1
         with:
           command: build
+          toolchain: nightly
           target: ${{ matrix.target }}
-          args: "--locked --release"
+          args: --release
           strip: true
       - name: Upload Artifact
         run: |
