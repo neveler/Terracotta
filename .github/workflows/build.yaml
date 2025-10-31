@@ -104,7 +104,7 @@ jobs:
             --release
             -Z build-std=core,std,alloc,proc_macro,panic_abort
             -Z build-std-features=default,optimize_for_size
-          strip: true
+          strip: false
       - name: Upload Artifact
         uses: actions/upload-artifact@v5
         with:
