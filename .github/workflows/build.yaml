@@ -170,6 +170,28 @@ jobs:
           name: terracotta-${{ matrix.target }}.pkg
           path: target/${{ matrix.target }}/release/terracotta.pkg
           retention-days: 1
+  assemble-packages:
+    runs-on: ubuntu-latest
+    name: Assemble Artifact
+    needs:
+      - build-windows
+      - build-linux
+      - build-macos
+    steps:
+      - name: Compute Version
+        run: |
+          if [ -z "${{ github.event.inputs.version }}" ]; then
+            echo "TERRACOTTA_VERSION=${GITHUB_SHA::7}" >> $GITHUB_ENV
+          else
+            echo "TERRACOTTA_VERSION=${{ github.event.inputs.version }}" >> $GITHUB_ENV
+          fi
+      - name: Download Artifacts
+        uses: actions/download-artifact@v5
+        with:
+          merge-multiple: true
+      - name: Assemble Artifacts
+        run: |
+          ls -R
   # assemble-packages:
   #   runs-on: ubuntu-latest
   #   name: Assemble Artifact
