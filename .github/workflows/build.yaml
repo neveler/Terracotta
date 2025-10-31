@@ -161,38 +161,34 @@ jobs:
       fail-fast: false
       matrix:
         include:
-          # - runs-on: ubuntu-24.04
-          #   os: linux
-          #   arch: x86_64
-          #   target: x86_64-unknown-linux-musl
-          # - runs-on: ubuntu-24.04-arm
-          #   os: linux
-          #   arch: arm64
-          #   target: aarch64-unknown-linux-musl
-          - runs-on: windows-latest
-            os: windows
+          - runs-on: ubuntu-24.04
+            os: linux
             arch: x86_64
-            target: x86_64-pc-windows-gnu
-          # - runs-on: ubuntu-24.04
-          #   os: freebsd
-          #   arch: x86_64
-          #   target: x86_64-unknown-freebsd
-          # - runs-on: ubuntu-24.04
-          #   os: linux
-          #   arch: riscv64
-          #   target: riscv64gc-unknown-linux-gnu
-          # - runs-on: ubuntu-24.04
-          #   os: linux
-          #   arch: riscv64
-          #   target: riscv64gc-unknown-linux-musl
-          # - runs-on: ubuntu-24.04
-          #   os: linux
-          #   arch: loongarch64
-          #   target: loongarch64-unknown-linux-gnu
-          # - runs-on: ubuntu-24.04
-          #   os: linux
-          #   arch: loongarch64
-          #   target: loongarch64-unknown-linux-musl
+            target: x86_64-unknown-linux-musl
+          - runs-on: ubuntu-24.04-arm
+            os: linux
+            arch: arm64
+            target: aarch64-unknown-linux-musl
+          - runs-on: ubuntu-24.04
+            os: freebsd
+            arch: x86_64
+            target: x86_64-unknown-freebsd
+          - runs-on: ubuntu-24.04
+            os: linux
+            arch: riscv64
+            target: riscv64gc-unknown-linux-gnu
+          - runs-on: ubuntu-24.04
+            os: linux
+            arch: riscv64
+            target: riscv64gc-unknown-linux-musl
+          - runs-on: ubuntu-24.04
+            os: linux
+            arch: loongarch64
+            target: loongarch64-unknown-linux-gnu
+          - runs-on: ubuntu-24.04
+            os: linux
+            arch: loongarch64
+            target: loongarch64-unknown-linux-musl
     runs-on: ${{ matrix.runs-on }}
     name: Build (${{ matrix.target }})
     steps:
