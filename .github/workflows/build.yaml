@@ -195,79 +195,14 @@ jobs:
         run: |
           for dir in terracotta-*; do
             [[ -d "$dir" ]] || continue
-            for ext in pkg exe ""; do
-              file="$dir/terracotta${ext:+.$ext}"
-              if [[ -f "$file" ]]; then
-                mv "$file" "terracotta-${{ env.TERRACOTTA_VERSION }}-${dir#terracotta-}${ext:+.$ext}"
-                break
-              fi
-            done
+            if [[ -f "$dir/terracotta.pkg" ]]; then
+              mv "$dir/terracotta.pkg" "terracotta-${{ env.TERRACOTTA_VERSION }}-${dir#terracotta-}"
+            elif [[ -f "$dir/terracotta.exe" ]]; then
+              mv "$dir/terracotta.exe" "terracotta-${{ env.TERRACOTTA_VERSION }}-${dir#terracotta-}.exe"
+            elif [[ -f "$dir/terracotta" ]]; then
+              mv "$dir/terracotta" "terracotta-${{ env.TERRACOTTA_VERSION }}-${dir#terracotta-}"
+            fi
           done
           if [ ! -z "${{ github.event.inputs.version }}" ]; then
             gh release create v"${{ github.event.inputs.version }}" -R "${{ github.repository }}" --draft --generate-notes terracotta-${{ env.TERRACOTTA_VERSION }}-*
           fi
-  # assemble-packages:
-  #   runs-on: ubuntu-latest
-  #   name: Assemble Artifact
-  #   needs:
-  #     - build-windows
-  #     - build-linux
-  #     - build-macos
-  #   steps:
-  #     - name: Install GitHub Artifact Client
-  #       uses: lhotari/gh-actions-artifact-client@v2
-  #     - name: Compute Version
-  #       run: |
-  #         if [ -z "${{ github.event.inputs.version }}" ]; then
-  #           echo "TERRACOTTA_VERSION=${GITHUB_SHA::7}" >> $GITHUB_ENV
-  #         else
-  #           echo "TERRACOTTA_VERSION=${{ github.event.inputs.version }}" >> $GITHUB_ENV
-  #         fi
-  #     - name: Assemble Artifacts
-  #       run: |
-  #         artifacts_direct=(
-  #           "terracotta-${TERRACOTTA_VERSION}-windows-x86_64.exe"
-  #           "terracotta-${TERRACOTTA_VERSION}-windows-arm64.exe"
-  #           "terracotta-${TERRACOTTA_VERSION}-macos-x86_64.pkg"
-  #           "terracotta-${TERRACOTTA_VERSION}-macos-arm64.pkg"
-  #         )
-  #         artifacts_tar=(
-  #           "terracotta-${TERRACOTTA_VERSION}-linux-x86_64"
-  #           "terracotta-${TERRACOTTA_VERSION}-linux-arm64"
-  #           "terracotta-${TERRACOTTA_VERSION}-linux-riscv64"
-  #           "terracotta-${TERRACOTTA_VERSION}-linux-loongarch64"
-  #           "terracotta-${TERRACOTTA_VERSION}-freebsd-x86_64"
-  #           "terracotta-${TERRACOTTA_VERSION}-macos-x86_64"
-  #           "terracotta-${TERRACOTTA_VERSION}-macos-arm64"
-  #         )
-          
-  #         file=$(mktemp -t XXXXXX.zip)
-  #         for artifact in "${artifacts_direct[@]}"; do
-  #           gh-actions-artifact-client.js download "$artifact" > "$file"
-  #           unzip -p "$file" > "$artifact"
-  #         done
-  #         for artifact in "${artifacts_tar[@]}"; do
-  #           gh-actions-artifact-client.js download "$artifact.tar" > "$file"
-  #           unzip -p "$file" | tar -xOf - > "$artifact"
-  #         done
-  #         rm "$file"
-          
-  #         chmod 755 terracotta-${TERRACOTTA_VERSION}-*
-  #         7z -m0=LZMA2 -mx=9 -ms=on a terracotta.7z terracotta-${TERRACOTTA_VERSION}-*
-  #         zip -r - terracotta.7z | gh-actions-artifact-client.js upload "terracotta-${TERRACOTTA_VERSION}-all.7z"
-          
-  #         if [ ! -z "${{ github.event.inputs.version }}" ]; then
-  #           tar -czvf terracotta-${TERRACOTTA_VERSION}-windows-x86_64-pkg.tar.gz terracotta-${TERRACOTTA_VERSION}-windows-x86_64.exe
-  #           tar -czvf terracotta-${TERRACOTTA_VERSION}-windows-arm64-pkg.tar.gz terracotta-${TERRACOTTA_VERSION}-windows-arm64.exe
-  #           tar -czvf terracotta-${TERRACOTTA_VERSION}-linux-x86_64-pkg.tar.gz terracotta-${TERRACOTTA_VERSION}-linux-x86_64
-  #           tar -czvf terracotta-${TERRACOTTA_VERSION}-linux-arm64-pkg.tar.gz terracotta-${TERRACOTTA_VERSION}-linux-arm64
-  #           tar -czvf terracotta-${TERRACOTTA_VERSION}-linux-riscv64-pkg.tar.gz terracotta-${TERRACOTTA_VERSION}-linux-riscv64
-  #           tar -czvf terracotta-${TERRACOTTA_VERSION}-linux-loongarch64-pkg.tar.gz terracotta-${TERRACOTTA_VERSION}-linux-loongarch64
-  #           tar -czvf terracotta-${TERRACOTTA_VERSION}-freebsd-x86_64-pkg.tar.gz terracotta-${TERRACOTTA_VERSION}-freebsd-x86_64
-          
-  #           tar -czvf terracotta-${TERRACOTTA_VERSION}-macos-x86_64-pkg.tar.gz terracotta-${TERRACOTTA_VERSION}-macos-x86_64 terracotta-${TERRACOTTA_VERSION}-macos-x86_64.pkg
-  #           tar -czvf terracotta-${TERRACOTTA_VERSION}-macos-arm64-pkg.tar.gz terracotta-${TERRACOTTA_VERSION}-macos-arm64 terracotta-${TERRACOTTA_VERSION}-macos-arm64.pkg
-          
-  #           gh release create v"${{ github.event.inputs.version }}" -R "${{ github.repository }}" --draft --generate-notes terracotta-${TERRACOTTA_VERSION}-*
-  #         fi
-
