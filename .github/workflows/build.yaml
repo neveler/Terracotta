@@ -187,8 +187,25 @@ jobs:
           fi
       - name: Download Artifacts
         uses: actions/download-artifact@v5
+        with:
+          pattern: terracotta-*
       - name: Assemble Artifacts
-        run: ls -R
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          for dir in terracotta-*; do
+            [[ -d "$dir" ]] || continue
+            for ext in pkg exe ""; do
+              file="$dir/terracotta${ext:+.$ext}"
+              if [[ -f "$file" ]]; then
+                mv "$file" "terracotta-${{ env.TERRACOTTA_VERSION }}-${dir#terracotta-}${ext:+.$ext}"
+                break
+              fi
+            done
+          done
+          if [ ! -z "${{ github.event.inputs.version }}" ]; then
+            gh release create v"${{ github.event.inputs.version }}" -R "${{ github.repository }}" --draft --generate-notes terracotta-${{ env.TERRACOTTA_VERSION }}-*
+          fi
   # assemble-packages:
   #   runs-on: ubuntu-latest
   #   name: Assemble Artifact
@@ -253,5 +270,4 @@ jobs:
           
   #           gh release create v"${{ github.event.inputs.version }}" -R "${{ github.repository }}" --draft --generate-notes terracotta-${TERRACOTTA_VERSION}-*
   #         fi
-  #       env:
-  #         GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
