@@ -25,7 +25,7 @@ defaults:
     shell: bash
 
 jobs:
-  build-windows:
+  build:
     strategy:
       fail-fast: false
       matrix:
@@ -42,30 +42,6 @@ jobs:
             os: windows
             arch: arm64
             target: aarch64-pc-windows-msvc
-    runs-on: ${{ matrix.runs-on }}
-    name: Build (${{ matrix.target }})
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-      - name: Build
-        uses: houseabsolute/actions-rust-cross@v1
-        with:
-          command: build
-          toolchain: nightly
-          target: ${{ matrix.target }}
-          args: --release
-          strip: true
-      - name: Upload Artifact
-        uses: actions/upload-artifact@v5
-        with:
-          name: terracotta-${{ matrix.target }}
-          path: target/${{ matrix.target }}/release/terracotta.exe
-          retention-days: 1
-  build-linux:
-    strategy:
-      fail-fast: false
-      matrix:
-        include:
           - runs-on: ubuntu-24.04
             os: linux
             arch: x86_64
@@ -102,30 +78,6 @@ jobs:
             os: freebsd
             arch: x86_64
             target: x86_64-unknown-freebsd
-    runs-on: ${{ matrix.runs-on }}
-    name: Build (${{ matrix.target }})
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-      - name: Build
-        uses: houseabsolute/actions-rust-cross@v1
-        with:
-          command: build
-          toolchain: nightly
-          target: ${{ matrix.target }}
-          args: --release
-          strip: true
-      - name: Upload Artifact
-        uses: actions/upload-artifact@v5
-        with:
-          name: terracotta-${{ matrix.target }}
-          path: target/${{ matrix.target }}/release/terracotta
-          retention-days: 1
-  build-macos:
-    strategy:
-      fail-fast: false
-      matrix:
-        include:
           - runs-on: macos-15-intel
             os: macos
             arch: x86_64
@@ -151,9 +103,10 @@ jobs:
         uses: actions/upload-artifact@v5
         with:
           name: terracotta-${{ matrix.target }}
-          path: target/${{ matrix.target }}/release/terracotta
+          path: target/${{ matrix.target }}/release/terracotta${{ matrix.os == 'windows' && '.exe' || '' }}
           retention-days: 1
-      - name: Package Artifact
+      - if: ${{ matrix.os == 'macos' && runner.os == 'macOS' }}
+        name: Package Artifact
         run: |
           cp "target/${{ matrix.target }}/release/terracotta" "build/macos/terracotta.app/Contents/MacOS/terracotta"
           pkgbuild \
@@ -164,7 +117,8 @@ jobs:
             --scripts build/macos/scripts \
             --component-plist build/macos/terracotta.plist \
             target/${{ matrix.target }}/release/terracotta.pkg
-      - name: Upload Package Artifact
+      - if: ${{ matrix.os == 'macos' && runner.os == 'macOS' }}
+        name: Upload Package Artifact
         uses: actions/upload-artifact@v5
         with:
           name: terracotta-${{ matrix.target }}.pkg
@@ -174,9 +128,7 @@ jobs:
     runs-on: ubuntu-latest
     name: Assemble Artifact
     needs:
-      - build-windows
-      - build-linux
-      - build-macos
+      - build
     steps:
       - name: Compute Version
         run: |
