@@ -63,7 +63,7 @@ jobs:
           RUSTFLAGS: -Zunstable-options -Cpanic=immediate-abort
       - name: Upload Artifact
         run: |
-          source="terracotta-${TERRACOTTA_VERSION}-${{ matrix.arch }}-${{ matrix.arch }}.exe"
+          source="terracotta-${TERRACOTTA_VERSION}-${{ matrix.os }}-${{ matrix.arch }}.exe"
           cp "target/${{ matrix.target }}/release/terracotta.exe" "$source"
           7z a "$source.zip" "$source"
           cat "$source.zip" | gh-actions-artifact-client.js upload "$source"
@@ -138,7 +138,7 @@ jobs:
           rustup target add --toolchain nightly "${{ matrix.target }}"
           cargo +nightly zigbuild --release --target "${{ matrix.target }}.${{ matrix.glibc-version }}"
       - name: Build (freebsd x86_64 | freebsd arm64)
-        if: ${{ contains(fromJSON('["x86_64", "arm64"]'), matrix.arch) && matrix.os == 'freebsd' }}
+        if: ${{ contains(fromJSON('["x86_64"]'), matrix.arch) && matrix.os == 'freebsd' }}
         uses: cross-platform-actions/action@v0.29.0
         with:
           operating_system: freebsd
