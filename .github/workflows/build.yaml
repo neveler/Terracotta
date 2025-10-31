@@ -34,108 +34,58 @@ jobs:
             os: windows
             arch: x86_64
             target: x86_64-pc-windows-msvc
-            components: rust-src
-            args: >-
-              --release
-              -Z build-std=core,std,alloc,proc_macro,panic_abort
-              -Z build-std-features=default,optimize_for_size
           - runs-on: windows-latest
             os: windows
             arch: x86_64
             target: x86_64-pc-windows-gnu
-            components: rust-src
-            args: >-
-              --release
-              -Z build-std=core,std,alloc,proc_macro,panic_abort
-              -Z build-std-features=default,optimize_for_size
           - runs-on: windows-11-arm
             os: windows
             arch: arm64
             target: aarch64-pc-windows-msvc
-            components: rust-src
-            args: >-
-              --release
-              -Z build-std=core,std,alloc,proc_macro,panic_abort
-              -Z build-std-features=default,optimize_for_size
           - runs-on: ubuntu-24.04
             os: linux
             arch: x86_64
             target: x86_64-unknown-linux-gnu
-            components: rust-src
-            args: >-
-              --release
-              -Z build-std=core,std,alloc,proc_macro,panic_abort
-              -Z build-std-features=default,optimize_for_size
           - runs-on: ubuntu-24.04
             os: linux
             arch: x86_64
             target: x86_64-unknown-linux-musl
-            components: rust-src
-            args: >-
-              --release
-              -Z build-std=core,std,alloc,proc_macro,panic_abort
-              -Z build-std-features=default,optimize_for_size
           - runs-on: ubuntu-24.04-arm
             os: linux
             arch: arm64
             target: aarch64-unknown-linux-gnu
-            components: rust-src
-            args: >-
-              --release
-              -Z build-std=core,std,alloc,proc_macro,panic_abort
-              -Z build-std-features=default,optimize_for_size
           - runs-on: ubuntu-24.04-arm
             os: linux
             arch: arm64
             target: aarch64-unknown-linux-musl
-            components: rust-src
-            args: >-
-              --release
-              -Z build-std=core,std,alloc,proc_macro,panic_abort
-              -Z build-std-features=default,optimize_for_size
           - runs-on: ubuntu-24.04
             os: linux
             arch: riscv64
             target: riscv64gc-unknown-linux-gnu
-            args: --release
           - runs-on: ubuntu-24.04
             os: linux
             arch: riscv64
             target: riscv64gc-unknown-linux-musl
-            args: --release
           - runs-on: ubuntu-24.04
             os: linux
             arch: loongarch64
             target: loongarch64-unknown-linux-gnu
-            args: --release
           - runs-on: ubuntu-24.04
             os: linux
             arch: loongarch64
             target: loongarch64-unknown-linux-musl
-            args: --release
           - runs-on: ubuntu-24.04
             os: freebsd
             arch: x86_64
             target: x86_64-unknown-freebsd
-            args: --release
           - runs-on: macos-15-intel
             os: macos
             arch: x86_64
             target: x86_64-apple-darwin
-            components: rust-src
-            args: >-
-              --release
-              -Z build-std=core,std,alloc,proc_macro,panic_abort
-              -Z build-std-features=default,optimize_for_size
           - runs-on: macos-latest
             os: macos
             arch: arm64
             target: aarch64-apple-darwin
-            components: rust-src
-            args: >-
-              --release
-              -Z build-std=core,std,alloc,proc_macro,panic_abort
-              -Z build-std-features=default,optimize_for_size
     runs-on: ${{ matrix.runs-on }}
     name: Build (${{ matrix.target }})
     steps:
@@ -149,8 +99,11 @@ jobs:
           command: build
           toolchain: nightly
           target: ${{ matrix.target }}
-          components: ${{ matrix.components }}
-          args: ${{ matrix.args }}
+          components: rust-src
+          args: >-
+            --release
+            -Z build-std=core,std,alloc,proc_macro,panic_abort
+            -Z build-std-features=default,optimize_for_size
           strip: true
       - name: Upload Artifact
         uses: actions/upload-artifact@v5
