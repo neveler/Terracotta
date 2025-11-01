@@ -25,6 +25,20 @@ defaults:
     shell: bash
 
 jobs:
+  prepare:
+    runs-on: ubuntu-24.04
+    outputs:
+      TERRACOTTA_VERSION: ${{ steps.compute-version.outputs.TERRACOTTA_VERSION }}
+    name: Prepare
+    steps:
+      - id: compute-version
+        name: Compute Version
+        run: |
+          if [ -z "${{ github.event.inputs.version }}" ]; then
+            echo "TERRACOTTA_VERSION=${GITHUB_SHA::7}" >> $GITHUB_OUTPUT
+          else
+            echo "TERRACOTTA_VERSION=${{ github.event.inputs.version }}" >> $GITHUB_OUTPUT
+          fi
   build:
     strategy:
       fail-fast: false
@@ -86,20 +100,22 @@ jobs:
             os: macos
             arch: arm64
             target: aarch64-apple-darwin
+    needs: prepare
+    env:
+      TERRACOTTA_VERSION: ${{ needs.prepare.outputs.TERRACOTTA_VERSION }}
     runs-on: ${{ matrix.runs-on }}
     name: Build (${{ matrix.target }})
     steps:
       - name: Checkout
         uses: actions/checkout@v4
       - name: Build
-        uses: neveler/actions-rust-cross@v1
+        uses: houseabsolute/actions-rust-cross@v1
         env:
           RUSTFLAGS: -Zunstable-options -Cpanic=immediate-abort
         with:
           command: build
           toolchain: nightly
           target: ${{ matrix.target }}
-          components: rust-src
           args: >-
             --release
             -Z build-std=core,std,alloc,proc_macro,panic_abort
@@ -134,15 +150,11 @@ jobs:
     runs-on: ubuntu-latest
     name: Assemble Artifact
     needs:
+      - prepare
       - build
+    env:
+      TERRACOTTA_VERSION: ${{ needs.prepare.outputs.TERRACOTTA_VERSION }}
     steps:
-      - name: Compute Version
-        run: |
-          if [ -z "${{ github.event.inputs.version }}" ]; then
-            echo "TERRACOTTA_VERSION=${GITHUB_SHA::7}" >> $GITHUB_ENV
-          else
-            echo "TERRACOTTA_VERSION=${{ github.event.inputs.version }}" >> $GITHUB_ENV
-          fi
       - name: Download Artifacts
         uses: actions/download-artifact@v5
         with:
